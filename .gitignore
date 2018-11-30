@@ -1,5 +1,5 @@
 venv/
-config/path_to_MAPS.json
 .idea/
 .vscode/
 exploration/.ipynb_checkpoints/
+config/local_config.json
