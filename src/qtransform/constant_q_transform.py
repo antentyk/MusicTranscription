@@ -2,8 +2,6 @@ import librosa
 from scipy.io import wavfile
 import numpy as np
 
-import matplotlib.pyplot as plt
-
 
 def q_transform(path_to_wav, config):
     """
@@ -30,12 +28,26 @@ def q_transform(path_to_wav, config):
         wav_samples, sample_rate, hop_length=hop_length_in, n_bins=n_bins_in, bins_per_octave=bins_octaves_in
     ))
 
-    return cqt
+    return cqt, sample_rate
 
 
 if __name__ == "__main__":
-    qtr = q_transform("/home/andrew/mapsParts/MAPS_MUS-alb_se3_AkPnBcht.wav",
-                {"bins_per_octave": 36, "n_frequency_bins": 252, "samples_between_cqt_columns": 512})
+    qtr, sample_rate = q_transform("/home/andrew/mapsParts/MAPS_MUS-chpn_op25_e2_AkPnBcht.wav",
+                                   {"bins_per_octave": 36, "n_frequency_bins": 252, "samples_between_cqt_columns": 512})
 
-    plt.pcolormesh(qtr)
-    plt.show()
+    # Easy plot
+    # import matplotlib.pyplot as plt
+    # plt.pcolormesh(qtr)
+    # plt.show()
+
+    # Librose plot
+    # import librosa.display
+    # librosa.display.specshow(
+    #     librosa.amplitude_to_db(qtr, ref=np.max), sr=sample_rate, x_axis='time', y_axis='cqt_note'
+    # )
+    #
+    # plt.colorbar(format='%+2.0f dB')
+    # plt.title('Constant-Q power spectrum')
+    # plt.tight_layout()
+    #
+    # plt.show()
