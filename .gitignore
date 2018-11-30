@@ -1,2 +1,4 @@
 venv/
 config/pathToMAPS.json
+.idea/
+.vscode/
