@@ -1,8 +1,6 @@
 import os
 import sys
 
-sys.path.append(os.path.abspath("../"))
-
 import numpy as np
 
 from config import config

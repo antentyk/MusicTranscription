@@ -1,17 +1,13 @@
 import os
 import sys
 
-sys.path.append(os.path.abspath("../"))
-
 from torch.nn import Module, Linear
 from torch.nn.functional import sigmoid
 from torch.optim import Adam
 from torch.nn.modules.loss import L1Loss
 import torch.nn.modules.loss as loss
 
-
 from config import config
-
 
 class Baseline(Module):
     def __init__(self):
