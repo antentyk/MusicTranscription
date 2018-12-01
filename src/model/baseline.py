@@ -3,7 +3,6 @@ import sys
 
 sys.path.append(os.path.abspath("../"))
 
-
 from torch.nn import Module, Linear
 from torch.nn.functional import sigmoid
 from torch.optim import Adam
