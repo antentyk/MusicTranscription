@@ -43,18 +43,18 @@ def q_transform(path_to_wav, config):
 
 def get_labels(sample_rate, cqt, path_to_txt, config):
     """
-    Performs Constant-Q Transform for wav audio file
+    Generate labels by using txt file with time ranges and notes
 
     Args:
-        path_to_wav (string): Full path to the wav file
+        sample_rate(int): WAV sample rate
+        np.ndarray[shape=(n_bins, t), dtype=np.complex or np.float]:
+        Absolute constant-Q value each frequency at each time.
+        path_to_txt (string): Full path to the midi txt file
         config(dict): Config dictionary with the following attributes:
         samples_between_cqt_columns, n_frequency_bins, bins_per_octave
 
     Returns:
-        np.ndarray[shape=(n_bins, t), dtype=np.complex or np.float]:
-        Absolute constant-Q value each frequency at each time.
-        sample_rate(int): Sample rate of the wav file
-
+        np.ndarray[shape=(number_frames, number_notes), dtype=int]: Labels
     """
     win_len = 512 / float(sample_rate)
     number_frames = np.max(cqt.shape[0])
