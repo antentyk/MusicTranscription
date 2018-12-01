@@ -33,7 +33,7 @@ def time_series_to_midi(dataframe, output_filepath):
         )
     
 
-    output_filepath = config["ouput_folder"] + output_filepath
+    output_filepath = config["path_to_generated_midi"] + output_filepath
 
     try:
         os.makedirs(os.path.dirname(output_filepath))
