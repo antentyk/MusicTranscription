@@ -1,6 +1,6 @@
 {
   "sample_rate": 20000,
-  "frames_per_input": 40000,
+  "batch_size": 40000,
   "bins_per_octave": 36,
   "n_frequency_bins": 252,
   "samples_between_cqt_columns": 512,
