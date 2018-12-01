@@ -1,8 +1,8 @@
 import os
 import sys
 
+import torch
 from torch.nn import Module, Linear
-from torch.nn.functional import sigmoid
 from torch.optim import Adam
 from torch.nn.modules.loss import L1Loss
 import torch.nn.modules.loss as loss
@@ -18,6 +18,6 @@ class Baseline(Module):
         self.criterion = L1Loss()
 
     def forward(self, x):
-        x = self.linear(x)
-        x = sigmoid(x)
+        x = self.layer(x)
+        x = torch.sigmoid(x)
         return x

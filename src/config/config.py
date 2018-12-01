@@ -12,8 +12,8 @@ def get_config():
         dict: configuration dictionary
     """
     config_filenames = [
-        "../../config/representation.json",
-        "../../config/local_config.json"
+        "config/representation.json",
+        "config/local_config.json"
     ]
 
     config = {}
