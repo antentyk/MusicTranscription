@@ -49,8 +49,6 @@ def main():
         for filename in filenames:
             files.append(os.path.relpath(dirpath + "/" + filename, config["path_to_MAPS"]))
     
-    logger.debug("Path example: %s" % (files[0],))
-    
     logger.info("Performing CQT")
 
     for filename in tqdm(files):
