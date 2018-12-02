@@ -7,7 +7,7 @@ from torch.optim import Adam
 from torch.nn.modules.loss import L1Loss
 import torch.nn.modules.loss as loss
 
-from config import config
+from src.config import config
 
 class Baseline(Module):
     def __init__(self):

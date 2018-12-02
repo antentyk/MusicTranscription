@@ -1,13 +1,11 @@
+import os
+
+
 import numpy as np
 import torch
 
-import os
-import sys
-
-sys.path.append(os.path.abspath("./src"))
-
-import preprocessing
-from config import config
+import src.preprocessing as preprocessing
+import src.config.config as config
 
 
 def save_as_numpy(data, labels, filename):

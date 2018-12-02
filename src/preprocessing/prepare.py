@@ -2,13 +2,8 @@ import librosa
 from scipy.io import wavfile
 import numpy as np
 
-import os
-import sys
-
-sys.path.append(os.path.abspath("../"))
-
-import time_series
-from config import config
+import src.time_series as time_series
+from src.config import config
 
 
 def q_transform(path_to_wav, config):

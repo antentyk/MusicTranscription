@@ -3,8 +3,7 @@ import sys
 
 import numpy as np
 
-from config import config
-
+from src.config import config
 
 def round_probabilities(prediction):
     prediction[prediction < config["round_bound"]] = 0
