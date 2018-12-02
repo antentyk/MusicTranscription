@@ -1,29 +1,34 @@
 import os
+import logging
+
+
+from tqdm import tqdm
 
 
 import numpy as np
 import torch
 
-import src.preprocessing as preprocessing
+import src.preprocessing
 import src.config.config as config
+import src.logger.logger as logger
 
 
 def save_as_numpy(data, labels, filename):
-    np.save(config["path_to_processed_MAPS"] + filename + '_data', data)
-    np.save(config["path_to_processed_MAPS"] + filename + '_labels', labels)
+    np.save(filename + '_data.npy', data)
+    np.save(filename + '_labels.npy', labels)
 
 
 def save_as_tensor(data, labels, filename):
     data = torch.from_numpy(data).float()
     labels = torch.from_numpy(labels).float()
 
-    torch.save(data, config["path_to_processed_MAPS"] + filename + '_data.tensor')
-    torch.save(labels, config["path_to_processed_MAPS"] + filename + '_labels.tensor')
+    torch.save(data, filename + '_data.tensor')
+    torch.save(labels, filename + '_labels.tensor')
 
 
 def save(data, labels, filename, as_tensors=False):
     # prevent the case if there is no such directory for saving file
-    os.makedirs(os.path.dirname(config["path_to_processed_MAPS"]), exist_ok=True)
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
 
     if not as_tensors:
         save_as_numpy(data, labels, filename)
@@ -32,23 +37,31 @@ def save(data, labels, filename, as_tensors=False):
 
 
 def main():
-    print("=== Start preprocessing ===")
+    logger.info("Start preprocessing")
 
     files = []
-    # Get all WAV and TXT files
-    for file in os.listdir(config["path_to_MAPS"]):
-        filename, file_extension = os.path.splitext(config["path_to_MAPS"] + file)
 
-        if file_extension == ".wav":
-            print("Processing: ", file)
+    logger.info("Building list of files")
 
-            # Transform to data and labels matrices
-            x, y = preprocessing.prepare(filename + file_extension, filename + ".txt", config)
+    for (dirpath, dirnames, filenames) in os.walk(config["path_to_MAPS"]):
+        filenames = filter(lambda name: name.endswith(".wav"), filenames)
+        filenames = map(lambda name: name[:-4], filenames)
+        for filename in filenames:
+            files.append(os.path.relpath(dirpath + "/" + filename, config["path_to_MAPS"]))
+    
+    logger.debug("Path example: %s" % (files[0],))
+    
+    logger.info("Performing CQT")
 
-            # Store to the output directory as numpy matrix files
-            save(x, y, file[:-4], as_tensors=True)
+    for filename in tqdm(files):
+        x, y = src.preprocessing.prepare(
+            config["path_to_MAPS"] + "./" + filename + ".wav",
+            config["path_to_MAPS"] + "./" + filename + ".txt"
+        )
 
-    print("=== Successfully finished preprocessing ===")
+        save(x, y, config["path_to_processed_MAPS"] + "./" + filename, as_tensors=True)
+
+    logger.info("Successfully finished preprocessing")
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ import src.time_series as time_series
 from src.config import config
 
 
-def q_transform(path_to_wav, config):
+def q_transform(path_to_wav):
     """
     Performs Constant-Q Transform for wav audio file
 
@@ -36,7 +36,7 @@ def q_transform(path_to_wav, config):
     return cqt, desire_sample_rate
 
 
-def get_labels(sample_rate, number_frames, path_to_txt, config):
+def get_labels(sample_rate, number_frames, path_to_txt):
     """
     Generate labels by using txt file with time ranges and notes
 
@@ -76,7 +76,7 @@ def get_labels(sample_rate, number_frames, path_to_txt, config):
     return labels
 
 
-def prepare(path_to_wav, path_to_txt, config):
+def prepare(path_to_wav, path_to_txt):
     """
     Prepare single wav file for training
 
@@ -94,10 +94,10 @@ def prepare(path_to_wav, path_to_txt, config):
     :param config:
     :return:
     """
-    cqt, sample_rate = q_transform(path_to_wav, config)
+    cqt, sample_rate = q_transform(path_to_wav)
     number_frames = cqt.shape[0]
 
-    labels = get_labels(sample_rate, number_frames, path_to_txt, config)
+    labels = get_labels(sample_rate, number_frames, path_to_txt)
 
     return cqt, labels
 
