@@ -6,7 +6,7 @@
   "samples_between_cqt_columns": 512,
   "notes_number": 88,
   "round_bound": 0.5,
-  "train_test": 0.8,
+  "train_size": 0.8,
   "test_size": 0.2,
   "log_folder": "./log"
 }
