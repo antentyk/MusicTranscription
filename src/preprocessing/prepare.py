@@ -101,26 +101,3 @@ def prepare(path_to_wav, path_to_txt):
 
     return cqt, labels
 
-
-if __name__ == "__main__":
-    prepare(config["path_to_MAPS"] + "MAPS_MUS-chpn_op25_e2_AkPnBcht.wav",
-            config["path_to_MAPS"] + "MAPS_MUS-chpn_op25_e2_AkPnBcht.txt",
-            config)
-
-    # qtr, sample_rate = q_transform()
-    # Easy plot
-    # import matplotlib.pyplot as plt
-    # plt.pcolormesh(qtr)
-    # plt.show()
-
-    # Librose plot
-    # import librosa.display
-    # librosa.display.specshow(
-    #     librosa.amplitude_to_db(qtr, ref=np.max), sr=sample_rate, x_axis='time', y_axis='cqt_note'
-    # )
-    #
-    # plt.colorbar(format='%+2.0f dB')
-    # plt.title('Constant-Q power spectrum')
-    # plt.tight_layout()
-    #
-    # plt.show()

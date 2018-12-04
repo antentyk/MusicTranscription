@@ -1,5 +1,8 @@
 import logging
 import sys
+import datetime
+
+from src.config import config
 
 def get_logger():
     """
@@ -12,17 +15,28 @@ def get_logger():
         - function name
         - logging level
         - logging message
+    
+    It will also create .log file in associated folder
+    (you should specify it in config)
 
     Returns:
         logging.Logger: logger, described above
     """
     logger = logging.getLogger("application")
 
+    formatter = logging.Formatter("%(asctime)s — %(module)s — %(funcName)s — %(levelname)s — %(message)s")
+
     console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(logging.Formatter("%(asctime)s — %(module)s — %(funcName)s — %(levelname)s — %(message)s"))
+    console_handler.setFormatter(formatter)
+
+    filename = config["log_folder"] + "/" + str(datetime.datetime.now()) + ".log"
+
+    file_handler = logging.FileHandler(filename)
+    file_handler.setFormatter(formatter)
 
     logger.setLevel(logging.DEBUG)
     logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
 
     logger.propagate = False
 

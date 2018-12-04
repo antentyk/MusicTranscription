@@ -3,3 +3,4 @@ venv/
 .vscode/
 exploration/.ipynb_checkpoints/
 config/local_config.json
+log/
