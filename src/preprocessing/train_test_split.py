@@ -19,7 +19,7 @@ def train_test_split():
     for (dirpath, dirnames, filenames) in os.walk(config["path_to_MAPS"]):
         filenames = filter(lambda name: name.endswith(".wav"), filenames)
         filenames = map(lambda name: name[:-4], filenames)
-        filenames = map(lambda name: os.path.relpath(dirpath + "/" + name, config["path_to_MAPS"]))
+        filenames = map(lambda name: os.path.relpath(dirpath + "/" + name, config["path_to_MAPS"]), filenames)
         filenames = list(filenames)
 
         random.shuffle(filenames)

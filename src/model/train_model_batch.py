@@ -11,10 +11,12 @@ def train_model_batch(model, batch_X, batch_y):
         batch_y(torch.Tensor): labels for the batch
     
     Returns:
-        None
+        float: loss, associated with the batch provided
     """
     model.optimizer.zero_grad()
     output = model(batch_X)
     loss = model.criterion(output, batch_y)
     loss.backward()
     model.optimizer.step()
+
+    return loss.item()

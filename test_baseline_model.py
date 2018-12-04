@@ -1,29 +1,17 @@
-import numpy as np
-
-import os
-import sys
-
 import torch
 
-sys.path.append(os.path.abspath("./src"))
+from src.logger import logger
+from src.config import config
+from src.preprocessing import train_test_split
+from src.model import round_probabilities
+from src.time_series import prediction_to_time_series, time_series_to_midi
 
-from model import Baseline, train_model_batch, round_probabilities
+model = torch.load(config["model_folder"] + "baseline.h5")
 
-device = torch.device("cpu")
+song_path = "/..."
 
-X = torch.load('./processed_maps/MAPS_MUS-alb_se3_AkPnBcht_data.tensor')
-Y = torch.load('./processed_maps/MAPS_MUS-alb_se3_AkPnBcht_labels.tensor')
+X = torch.load(config["path_to_processed_MAPS"] + song_path + "_data.torch")
 
-# if torch.cuda.is_available():
-#     device = torch.device('cuda:0')
-
-model = Baseline()
-model = model.to(device)
-
-train_model_batch(model, X, Y)
-
-pred = model.forward(X)
-
-pred = round_probabilities(pred.data.numpy())
-
-np.save("prediction", pred)
+pred = round_probabilities(model(X))
+pred = prediction_to_time_series(pred, config["sample_rate"])
+pred = time_series_to_midi(pred, "./", "kokoko.midi")

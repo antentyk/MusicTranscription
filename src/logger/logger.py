@@ -4,7 +4,7 @@ import datetime
 
 from src.config import config
 
-def get_logger():
+def get_logger(console_silent=False, file_silent=False):
     """
     Creates configured logger,
     that will be used throughout the project.
@@ -26,17 +26,18 @@ def get_logger():
 
     formatter = logging.Formatter("%(asctime)s — %(module)s — %(funcName)s — %(levelname)s — %(message)s")
 
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(formatter)
+    if(not console_silent):
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
 
-    filename = config["log_folder"] + "/" + str(datetime.datetime.now()) + ".log"
-
-    file_handler = logging.FileHandler(filename)
-    file_handler.setFormatter(formatter)
+    if(not file_silent):
+        filename = config["log_folder"] + "/" + str(datetime.datetime.now()) + ".log"
+        file_handler = logging.FileHandler(filename)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
 
     logger.setLevel(logging.DEBUG)
-    logger.addHandler(console_handler)
-    logger.addHandler(file_handler)
 
     logger.propagate = False
 
