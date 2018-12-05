@@ -24,6 +24,8 @@ def round_probabilities(prediction):
     prediction[prediction != 0] = 1
     prediction = prediction.int()
 
+    return prediction
+
 def get_metrics(prediction, target):
     """
     Calculates different metrics that are used to
