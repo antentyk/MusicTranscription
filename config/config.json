@@ -1,0 +1,10 @@
+{
+  "sr": 22050,
+  "bins_per_note": 3,
+  "hop_length": 512,
+
+  "round_bound": 0.5,
+  "train_size": 0.8,
+  "test_size": 0.2,
+  "epochs_num": 1000
+}
