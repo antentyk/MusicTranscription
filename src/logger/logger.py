@@ -19,6 +19,10 @@ def get_logger(console_silent=False, file_silent=False):
     It will also create .log file in associated folder
     (you should specify it in config)
 
+    Args:
+        console_silent(bool): whether logger should output logs in console
+        file_silent(bool): whether logger should output logs in file
+
     Returns:
         logging.Logger: logger, described above
     """
@@ -42,5 +46,3 @@ def get_logger(console_silent=False, file_silent=False):
     logger.propagate = False
 
     return logger
-
-logger = get_logger()
