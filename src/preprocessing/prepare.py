@@ -20,8 +20,7 @@ def prepare(path_to_wav, path_to_txt):
             sr=config["sr"],
             hop_length=config["hop_length"],
             fmin=librosa.note_to_hz("A0"),
-            n_bins=config["bins_per_note"] * 88,
-            bins_per_octave=12 * config["bins_per_note"]
+            n_bins=88
         )
     ).T
 

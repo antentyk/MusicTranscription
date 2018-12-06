@@ -1,4 +1,5 @@
 import os
+import random
 
 from tqdm import tqdm
 
@@ -22,6 +23,9 @@ def main():
         filenames = map(lambda name: name[:-4], filenames)
         for filename in filenames:
             files.append(os.path.relpath(dirpath + "/" + filename, config["path_to_MAPS"]))
+    
+    random.shuffle(files)
+    files = files[:2000]
     
     logger.info("Performing CQT")
 
