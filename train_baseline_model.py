@@ -3,48 +3,66 @@ import torch
 from tqdm import tqdm
 
 from src.config import config
-from src.model import Baseline, train_model_batch, round_probabilities
+from src.model import Baseline, round_probabilities
 from src.preprocessing import train_test_split
-from src.logger import logger
+from src.logger import get_logger
 
-logger.info("Performing train_test_split")
-
-train_filenames, test_filenames = train_test_split()
-
-logger.debug("Slicing")
-train_filenames = train_filenames[:2000]
-
-logger.info("Finish performing train_test_split")
-
-logger.info(len(train_filenames))
-logger.info(len(test_filenames))
-
+logger = get_logger()
 model = Baseline()
 
-logger.info("Start training")
+def save():
+    logger.info("Saving model")
+    torch.save(model, config["model_folder"] + "BCE_final.h5")
+    logger.info("Successfully saved the model")
 
-for epoch in range(config["epochs_num"]):
-    logger.info("Epoch %s" % (epoch, ))
+def main():
+    logger.info("Performing train_test_split")
+    train_filenames, test_filenames = train_test_split()
+    logger.info("Finish performing train_test_split")
 
-    cnt = 0
-    current_loss = 0.0
+    logger.info("Start training")
 
-    for file_name in tqdm(train_filenames):
-        cnt += 1
-        if(cnt % 2000 == 0):
-            logger.info("%s iteration per 2000 batches, loss: %s" % (cnt // 2000, current_loss))
-            current_loss = 0
+    for epoch in range(config["epochs_num"]):
+        logger.info("Epoch %s" % (epoch + 1, ))
 
-        batch_X = torch.load(config["path_to_processed_MAPS"] + "./" + file_name + "_data.tensor")
-        batch_y = torch.load(config["path_to_processed_MAPS"] + "./" + file_name + "_labels.tensor")
+        for file_name in tqdm(train_filenames):
+            batch_X = torch.load(config["path_to_processed_MAPS"] + "./" + file_name + "_data.tensor")
+            batch_y = torch.load(config["path_to_processed_MAPS"] + "./" + file_name + "_labels.tensor").float()
 
-        current_loss += train_model_batch(model, batch_X, batch_y)
+            model.optimizer.zero_grad()
 
-logger.info("Finish training")
+            output = model(batch_X)
+            loss = model.criterion(output, batch_y)
+
+            loss.backward()
+            model.optimizer.step()
+        
+        logger.info("Estimating loss...")
+
+        loss_value = 0.0
+
+        for file_name in tqdm(train_filenames):
+            batch_X = torch.load(config["path_to_processed_MAPS"] + "./" + file_name + "_data.tensor")
+            batch_y = torch.load(config["path_to_processed_MAPS"] + "./" + file_name + "_labels.tensor").float()
+
+            output = model(batch_X)
+            loss = model.criterion(output, batch_y)
+
+            loss_value += loss.item()
+        
+        logger.info("After epoch %s loss value is %s" % (epoch + 1, loss_value))
+        
+        logger.info("Saving in-between model")
+        torch.save(model, config["model_folder"] + ("BCE_epoch_%s.h5" % (epoch + 1, )))
+        logger.info("Finished saving in-between model")
+        
+    logger.info("Finished training")
+
+    save()
 
 
-logger.info("Saving model")
-
-torch.save(model, config["model_folder"] + "./" + "baseline.h5")
-
-logger.info("Saved successfully")
+try:
+    main()
+except KeyboardInterrupt:
+    logger.info("Interrupted")
+    save()

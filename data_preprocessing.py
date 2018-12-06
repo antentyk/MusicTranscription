@@ -1,42 +1,16 @@
 import os
-import logging
-
 
 from tqdm import tqdm
 
-
-import numpy as np
 import torch
 
-import src.preprocessing
-import src.config.config as config
-import src.logger.logger as logger
-
-
-def save_as_numpy(data, labels, filename):
-    np.save(filename + '_data.npy', data)
-    np.save(filename + '_labels.npy', labels)
-
-
-def save_as_tensor(data, labels, filename):
-    data = torch.from_numpy(data).float()
-    labels = torch.from_numpy(labels).float()
-
-    torch.save(data, filename + '_data.tensor')
-    torch.save(labels, filename + '_labels.tensor')
-
-
-def save(data, labels, filename, as_tensors=False):
-    # prevent the case if there is no such directory for saving file
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
-
-    if not as_tensors:
-        save_as_numpy(data, labels, filename)
-    else:
-        save_as_tensor(data, labels, filename)
-
+from src.config import config
+from src.logger import get_logger
+from src.preprocessing import prepare
 
 def main():
+    logger = get_logger(file_silent=True)
+
     logger.info("Start preprocessing")
 
     files = []
@@ -52,12 +26,13 @@ def main():
     logger.info("Performing CQT")
 
     for filename in tqdm(files):
-        x, y = src.preprocessing.prepare(
-            config["path_to_MAPS"] + "./" + filename + ".wav",
-            config["path_to_MAPS"] + "./" + filename + ".txt"
-        )
+        x, y = prepare(config["path_to_MAPS"] + filename + ".wav", config["path_to_MAPS"] + filename + ".txt")
 
-        save(x, y, config["path_to_processed_MAPS"] + "./" + filename, as_tensors=True)
+        filename = config["path_to_processed_MAPS"] + filename
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        torch.save(x, filename + "_data.tensor")
+        torch.save(y, filename + "_labels.tensor")
 
     logger.info("Successfully finished preprocessing")
 
