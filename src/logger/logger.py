@@ -2,7 +2,7 @@ import logging
 import sys
 import datetime
 
-from src.config import config
+from src.config.config import config
 
 def get_logger(console_silent=False, file_silent=False):
     """
@@ -36,7 +36,7 @@ def get_logger(console_silent=False, file_silent=False):
         logger.addHandler(console_handler)
 
     if(not file_silent):
-        filename = config["log_folder"] + "/" + str(datetime.datetime.now()) + ".log"
+        filename = config["logs_folder"] + "/" + str(datetime.datetime.now()) + ".log"
         file_handler = logging.FileHandler(filename)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)

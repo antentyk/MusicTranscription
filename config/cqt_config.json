@@ -1,0 +1,5 @@
+{
+    "sr": 44100,
+    "bins_per_note": 3,
+    "hop_length": 512
+}

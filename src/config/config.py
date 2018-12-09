@@ -1,6 +1,7 @@
 import json
+import os
 
-def get_config():
+def __get_config():
     """
     Returns dictionary of configurations stored in .json files
     in config folder in the root of the project
@@ -11,17 +12,16 @@ def get_config():
     Returns:
         dict: configuration dictionary
     """
-    config_filenames = [
-        "config/config.json",
-        "config/local_config.json"
-    ]
 
-    config = {}
+    config_filenames = filter(lambda x: x.endswith("_config.json"), os.listdir("./config"))
+    config_filenames = map(lambda x: "./config/" + x, config_filenames)
+
+    configuration = {}
 
     for filename in config_filenames:
         with open(filename) as file:
-            config.update(json.loads(file.read()))
+            configuration.update(json.loads(file.read()))
     
-    return config
+    return configuration
 
-config = get_config()
+config = __get_config()

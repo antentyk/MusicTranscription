@@ -1,8 +1,7 @@
 venv/
 .idea/
 .vscode/
-exploration/.ipynb_checkpoints/
 config/local_config.json
 logs/
 models/
-log/
+data_exploration/data/
