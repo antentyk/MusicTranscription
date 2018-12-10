@@ -1,5 +1,7 @@
 {
     "sr": 44100,
     "bins_per_note": 3,
-    "hop_length": 512
+    "hop_length": 128,
+    "n_bins": 252,
+    "bins_per_octave": 36
 }

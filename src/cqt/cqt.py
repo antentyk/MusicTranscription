@@ -8,6 +8,7 @@ import pandas as pd
 
 from src.config import config
 
+
 def cqt(path_to_wav, path_to_txt):
     sample_rate, samples = wavfile.read(path_to_wav)
     samples = np.mean(samples, axis=1)
@@ -18,7 +19,8 @@ def cqt(path_to_wav, path_to_txt):
             sr=config["sr"],
             hop_length=config["hop_length"],
             fmin=librosa.note_to_hz("A0"),
-            n_bins=88
+            n_bins=config["n_bins"],
+            bins_per_octave=config["bins_per_octave"]
         )
     ).T
 
@@ -36,10 +38,10 @@ def cqt(path_to_wav, path_to_txt):
         startFrame = row["OnsetTime"]
 
         endFrame = row["OffsetTime"]
-        
+
         note = row["MidiPitch"] - 21
         labels[startFrame:endFrame + 1, note] = 1
-    
+
     labels = torch.from_numpy(labels).int()
     cqt = torch.from_numpy(cqt).float()
 
