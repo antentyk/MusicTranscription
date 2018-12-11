@@ -2,17 +2,14 @@ import os
 
 import midiutil
 
-def time_series_to_midi(time_series, path_to_generated_midi, output_filepath):
+def time_series_to_midi(time_series, output_filepath):
     """
     Generates midi file from time series representation of the song
 
     Args:
         time_series (pandas.DataFrame): time series representation of the song
             in MAPS database (Onset, Offset, MidiPitch)
-        path_to_generated_midi(str): path to the folder with generated midi files
         output_filepath (str): path to desired midi file
-            (if some of the directories in the path does not exist,
-             it will be created)
 
     Returns:
         None
@@ -26,14 +23,10 @@ def time_series_to_midi(time_series, path_to_generated_midi, output_filepath):
             0,
             0,
             int(row["MidiPitch"]),
-            row["OnsetTime"],
-            row["OffsetTime"] - row["OnsetTime"],
+            float(row["OnsetTime"]),
+            float(row["OffsetTime"] - row["OnsetTime"]),
             100
         )
-
-    output_filepath = path_to_generated_midi + output_filepath
-
-    os.makedirs(os.path.dirname(output_filepath), exist_ok=True)
 
     with open(output_filepath, "wb") as binfile:
         output_midi.writeFile(binfile)

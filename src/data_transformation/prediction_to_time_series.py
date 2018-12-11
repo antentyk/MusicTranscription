@@ -24,7 +24,7 @@ def prediction_to_time_series(prediction):
                 if(start == -1):
                     continue
                 onsets.append(__to_time(start))
-                offsets.append(__to_time(i - 1))
+                offsets.append(__to_time(i + 1))
                 pitches.append(note_number + 21)
                 start = -1
             else:
