@@ -9,7 +9,7 @@ from src.config import config
 from src.logger import get_logger
 from src.cqt import cqt
 
-logger = get_logger(file_silent=True)
+logger = get_logger()
 
 logger.info("Collecting list of files in the dataset")
 

@@ -9,15 +9,15 @@ from src.dataset import Dataset
 from src.logger import get_logger
 from src.config import config
 
-logger = get_logger(file_silent=True)
+logger = get_logger()
 
 folders = ["MUS", "TRILLS", "SCALES", "SINGLE", "CHORDS"]
 
-sum_X = torch.zeros(config["n_bins"])
-cnt = 0
-
 for folder in folders:
-    for dataset_type in ["train", "validation", "test"]:
+    sum_X = torch.zeros(config["n_bins"])
+    cnt = 0
+
+    for dataset_type in ["train", "validation"]:
         logger.info("Calculating %s %s" % (folder, dataset_type))
 
         dataset = Dataset(folder, dataset_type)
@@ -33,9 +33,9 @@ for folder in folders:
             cnt += 1
             sum_X += batch_X
 
-logger.info("Done")
+    logger.info("Saving mean")
 
-logger.info("Saving mean")
-sum_X = sum_X / cnt
-torch.save(sum_X, os.path.join(config["path_to_processed_MAPS"], "dataset_mean.tensor"))
-logger.info("Done")
+    torch.save(sum_X, os.path.join(config["path_to_processed_MAPS"], folder + "_sum.tensor"))
+    torch.save(torch.tensor([cnt]), os.path.join(config["path_to_processed_MAPS"], folder + "_cnt.tensor"))
+
+    logger.info("Done")

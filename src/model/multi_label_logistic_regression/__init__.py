@@ -1,2 +1,1 @@
 from .multi_label_logistic_regression import MultiLabelLogisticRegression
-from .four_layers import FourLayers

@@ -3,7 +3,7 @@ from torch.nn import Linear, Sigmoid, ReLU
 from src.model import Model
 from src.config import config
 
-class FourLayers(Model):
+class Layer4(Model):
     def __init__(self, name):
         super().__init__(name)
 

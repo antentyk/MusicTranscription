@@ -20,6 +20,4 @@ class Model(torch.nn.Module):
 
     def save_checkpoint(self):
         return self.__save("%s/%s.pth" % (self.name, self.epochs_survived))
-    
-    def save_final(self):
-        return self.__save("%s/final.pth" % (self.name, ))
+

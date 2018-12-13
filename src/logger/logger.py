@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 import datetime
 
@@ -36,7 +37,11 @@ def get_logger(console_silent=False, file_silent=False):
         logger.addHandler(console_handler)
 
     if(not file_silent):
-        filename = config["logs_folder"] + "/" + str(datetime.datetime.now()) + ".log"
+        filename = "%s/%s_%s.log" % (
+            config["logs_folder"],
+            str(datetime.datetime.now()),
+            os.path.basename(sys.argv[0])
+        )
         file_handler = logging.FileHandler(filename)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
