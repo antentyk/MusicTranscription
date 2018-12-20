@@ -16,7 +16,7 @@ def prediction_to_time_series(prediction):
     offsets = []
     pitches = []
 
-    for note_number in range(88):
+    for note_number in range(config["notes_number"] - config["lower_notes_dropout_number"]):
         start = -1
 
         for i in range(prediction.shape[1]):
@@ -25,7 +25,7 @@ def prediction_to_time_series(prediction):
                     continue
                 onsets.append(__to_time(start))
                 offsets.append(__to_time(i + 1))
-                pitches.append(note_number + 21)
+                pitches.append(note_number + config["lowest_note_midi_pitch"] + config["lower_notes_dropout_number"])
                 start = -1
             else:
                 if(start == -1):

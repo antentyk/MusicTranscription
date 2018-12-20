@@ -5,8 +5,8 @@ import numpy as np
 
 from matplotlib import pyplot as plt
 
-wav_file = "./data/" + "scale.wav"
-txt_file = "./data/" + "scale.txt"
+wav_file = "./data_exploration/data/" + "bach_wtc1_C_dur.wav"
+txt_file = "./data_exploration/data/" + "bach_wtc1_C_dur.txt"
 
 prediction, labels = cqt(wav_file, txt_file)
 

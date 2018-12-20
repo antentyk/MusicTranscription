@@ -57,4 +57,10 @@ class Dataset(data.Dataset):
             self.__prev_opened_X = torch.load(os.path.join(self.__folder, ("X%s.tensor" % (file_index, ))))
             self.__prev_opened_y = torch.load(os.path.join(self.__folder, ("y%s.tensor" % (file_index, ))))
         
-        return self.__prev_opened_X[sample_index], self.__prev_opened_y[sample_index]
+        X = self.__prev_opened_X[sample_index]
+        y = self.__prev_opened_y[sample_index]
+
+        X = X[:,config["lower_notes_dropout_number"] * config["bins_per_note"]:]
+        y = y[:,config["lower_notes_dropout_number"]:]
+
+        return X, y

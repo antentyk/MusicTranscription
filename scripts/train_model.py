@@ -9,20 +9,41 @@ from torch.nn.modules.loss import BCELoss
 
 from src.config import config
 from src.dataset import Dataset
-from src.model.DNN import Layer4
+from src.model.Dnn import Dnn
 from src.logger import get_logger
+
+def get_mean():
+    folders = ["CHORDS", "MUS", "SCALES", "SINGLE", "TRILLS"]
+    
+    summ = torch.zeros(config["bins_per_note"] * 88)
+    n = 0
+    
+    for folder in folders:
+        summ += torch.load(os.path.join(config["path_to_processed_MAPS"], folder + "_sum.tensor"))
+        n += torch.load(os.path.join(config["path_to_processed_MAPS"], folder + "_cnt.tensor")).item()
+    
+    summ /= n
+    summ = summ[config["bins_per_note"] * config["lower_notes_dropout_number"]:]
+
+    return summ
+
+mean = get_mean()
+ratio = 0.01
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+logger = get_logger(file_silent=True)
 
 def main(
     model,
     device,
     logger,
     dataset_folder,
-    dataset_ratio,
-    dataset_mean,
     optimizer,
     criterion
 ):
     global config
+    global mean
+    global ratio
 
     logger.info("Start training %s" % (model.name, ))
     logger.info("Dataset: %s" % (dataset_folder, ))
@@ -30,11 +51,11 @@ def main(
     for epoch in range(1, config["epochs_num"] + 1):
         logger.info("Epoch %s" % (epoch, ))
         
-        dataset = Dataset(dataset_folder, "train", ratio=dataset_ratio)
+        dataset = Dataset(dataset_folder, "train", ratio=ratio)
         dataloader = DataLoader(dataset, batch_size=config["mini_batch_size"])
 
         for batch_X, batch_y in tqdm(dataloader):
-            batch_X -= dataset_mean
+            batch_X -= mean
             batch_X[batch_X < 0] = 0
 
             batch_X, batch_y = batch_X.to(device), batch_y.to(device)
@@ -57,14 +78,14 @@ def main(
                 for dataset_type in ["train", "validation"]:
                     loss_value = 0.0
                     
-                    dataset = Dataset(dataset_folder, dataset_type, ratio=dataset_ratio)
+                    dataset = Dataset(dataset_folder, dataset_type, ratio=ratio)
                     dataloader = DataLoader(dataset, batch_size=config["mini_batch_size"])
 
                     logger.info(dataset_type)
                     logger.info("Samples num: %s" % (len(dataloader), ))
 
                     for batch_X, batch_y in tqdm(dataloader):
-                        batch_X -= dataset_mean
+                        batch_X -= mean
                         batch_X[batch_X < 0] = 0
 
                         batch_X, batch_y = batch_X.to(device), batch_y.to(device)
@@ -75,24 +96,17 @@ def main(
                     
                     logger.info("Loss value per dataset: %s" % (loss_value, ))
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-logger = get_logger()
+model = Dnn("Dnn 50 layers 0.1 dropout SINGLE", 50, 0.1)
+model = model.to(device)
 
-model = Layer4("DNN 4 layers SINGLE")
+main(model, device, logger, "SINGLE", Adam(model.parameters(), lr=1e-5), BCELoss())
 
-def get_mean(folder_name):
-    summ = torch.load(os.path.join(config["path_to_processed_MAPS"], folder_name + "_sum.tensor"))
-    n = torch.load(os.path.join(config["path_to_processed_MAPS"], folder_name + "_cnt.tensor"))
-    return summ / n.item()
-
-main(model, device, logger, "SINGLE", 1, get_mean("SINGLE"), Adam(model.parameters(), lr=1e-5), BCELoss())
-
-model.name = "DNN 4 layers SINGLE then SCALES"
+model.name = "Dnn 50 layers 0.1 dropout SINGLE then SCALES"
 model.epochs_survived = 0
 
-main(model, device, logger, "SCALES", 1, get_mean("SCALES"), Adam(model.parameters(), lr=1e-5), BCELoss())
+main(model, device, logger, "SCALES", Adam(model.parameters(), lr=1e-5), BCELoss())
 
-model.name = "DNN 4 layers SINGLE than SCALES then CHORDS"
+model.name = "Dnn 50 layers 0.1 dropout SINGLE then SCALES then CHORDS"
 model.epochs_survived = 0
 
-main(model, device, logger, "CHORDS", 1, get_mean("CHORDS"), Adam(model.parameters(), lr=1e-5), BCELoss())
+main(model, device, logger, "CHORDS", Adam(model.parameters(), lr=1e-5), BCELoss())
