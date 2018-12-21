@@ -60,6 +60,8 @@ def cqt(path_to_wav, path_to_txt=None):
 
         if(note < 0):
             continue
+        if(note >= config["notes_number"]):
+            continue
 
         labels[startFrame:endFrame + 1, note] = 1
 
