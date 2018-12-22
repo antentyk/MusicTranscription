@@ -60,7 +60,7 @@ class Dataset(data.Dataset):
         X = self.__prev_opened_X[sample_index]
         y = self.__prev_opened_y[sample_index]
 
-        X = X[:,config["lower_notes_dropout_number"] * config["bins_per_note"]:]
-        y = y[:,config["lower_notes_dropout_number"]:]
+        # X = X[:,config["lower_notes_dropout_number"] * config["bins_per_note"]:]
+        # y = y[:,config["lower_notes_dropout_number"]:]
 
         return X, y
