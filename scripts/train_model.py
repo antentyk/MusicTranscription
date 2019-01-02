@@ -54,7 +54,7 @@ for epoch in range(1, config["epochs_num"] + 1):
 
     for i in tqdm(range(max(dataloadersLength))):
         for dataloader in dataloaders:
-            if(len(dataloader <= i)):
+            if(len(dataloader) <= i):
                 continue
             batch_X, batch_y = dataloader[i]
             batch_X -= mean

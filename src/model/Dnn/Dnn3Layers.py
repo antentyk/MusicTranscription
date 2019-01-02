@@ -7,7 +7,7 @@ from src.config import config
 
 
 class Dnn3Layers(Model):
-    def __init__(self):
+    def __init__(self, name):
         super().__init__(name)
 
         tmp = []
