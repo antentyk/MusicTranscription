@@ -17,7 +17,7 @@ for folder in folders:
     sum_X = torch.zeros(config["n_bins"])
     cnt = 0
 
-    logger.info("Calculating %s %s" % (folder, dataset_type))
+    logger.info("Calculating %s %s" % (folder, "train"))
     dataset = Dataset(folder, "train")
     dataloader = DataLoader(dataset)
 
