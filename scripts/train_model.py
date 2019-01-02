@@ -35,11 +35,7 @@ def get_mean():
 mean = get_mean()
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-logger = get_logger(file_silent=True)
-
-dataloaders = [DataLoader(Dataset(folder, "train"),
-                          batch_size=config["mini_batch_size"]) for folder in folders]
-dataloadersLength = [len(dataloader) for dataloader in dataloaders]
+logger = get_logger(file_silent=False)
 
 model = Dnn3Layers("Dnn 3 layers")
 model = model.to(device)
@@ -52,11 +48,21 @@ logger.info("Start training")
 for epoch in range(1, config["epochs_num"] + 1):
     logger.info("Epoch %s" % (epoch, ))
 
-    for i in tqdm(range(max(dataloadersLength))):
+    dataloaders = [DataLoader(Dataset(
+        folder, "train"), batch_size=config["mini_batch_size"]).__iter__() for folder in folders]
+    maxDataloaderLength = max([len(dataloader) for dataloader in dataloaders])
+
+    for i in tqdm(range(maxDataloaderLength)):
+        newDataloaders = []
         for dataloader in dataloaders:
-            if(len(dataloader) <= i):
+            batch_X, batch_y = None, None
+
+            try:
+                batch_X, batch_y = dataloader.next()
+                newDataloaders.append(dataloader)
+            except StopIteration:
                 continue
-            batch_X, batch_y = dataloader[i]
+
             batch_X -= mean
             batch_X[batch_X < 0] = 0
             batch_X, batch_y = batch_X.to(device), batch_y.to(device)
@@ -65,6 +71,7 @@ for epoch in range(1, config["epochs_num"] + 1):
             loss = criterion(output, batch_y.float())
             loss.backward()
             optimizer.step()
+        dataloaders = newDataloaders
 
     model.epochs_survived += 1
 
@@ -72,4 +79,25 @@ for epoch in range(1, config["epochs_num"] + 1):
     model.save_checkpoint()
     logger.info("Done")
 
+    if(model.epochs_survived % 5 != 0):
+        continue
+
+    logger.info("Estimating loss...")
+    loss_value = 0.0
+    for folder in folders:
+        dataloader = DataLoader(Dataset(folder, "train"), batch_size=config["mini_batch_size"])
+        logger.info(folder)
+        with torch.no_grad():
+            for batch_X, batch_y in tqdm(dataloader):
+                batch_X -= mean
+                batch_X[batch_X < 0] = 0
+
+                batch_X, batch_y = batch_X.to(device), batch_y.to(device)
+
+                output = model(batch_X)
+                loss = criterion(output, batch_y.float())
+                loss_value += loss.item()
+    logger.info("Loss value per dataset: %s" % (loss_value, ))
+
 logger.info("Finished training")
+
