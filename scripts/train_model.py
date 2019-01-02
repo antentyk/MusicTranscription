@@ -37,7 +37,7 @@ mean = get_mean()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 logger = get_logger(file_silent=True)
 
-dataloaders = [DataLoader(Dataset(folder, "train", ratio=1),
+dataloaders = [DataLoader(Dataset(folder, "train"),
                           batch_size=config["mini_batch_size"]) for folder in folders]
 dataloadersLength = [len(dataloader) for dataloader in dataloaders]
 
