@@ -5,3 +5,4 @@ config/local_config.json
 logs/
 models/
 data_exploration/data/
+__pycache__/
