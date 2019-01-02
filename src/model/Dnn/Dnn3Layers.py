@@ -7,15 +7,15 @@ from src.config import config
 
 
 class Dnn3Layers(Model):
-    def __init__(self, name, layers_num, dropout_rate):
+    def __init__(self):
         super().__init__(name)
 
         tmp = []
         for i in range(3):
-            tmp.append(Linear(252, 252))
+            tmp.append(Linear(config["n_bins"], config["n_bins"]))
             tmp.append(ReLU())
             tmp.append(Dropout(0.2))
-        tmp.append(Linear(252, config["notes_number"]))
+        tmp.append(Linear(config["n_bins"], config["notes_number"]))
         tmp.append(Sigmoid())
 
         self.layers = Sequential(*tmp)
