@@ -20,7 +20,7 @@ def cqt(path_to_wav, path_to_txt=None):
             left_channel,
             sr=config["sr"],
             hop_length=config["hop_length"],
-            fmin=librosa.note_to_hz("C1"),
+            fmin=librosa.note_to_hz(config["lowest_note"]),
             n_bins=config["n_bins"],
             bins_per_octave=config["bins_per_octave"]
         )
