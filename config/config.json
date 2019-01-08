@@ -1,0 +1,27 @@
+{
+    "sr": 44100,
+    "bins_per_note": 3,
+    "hop_length": 512,
+    "n_bins": 252,
+    "bins_per_octave": 36,
+    "notes_number": 84,
+    "lowest_note_midi_pitch": 24,
+    "lowest_note": "C1",
+
+    "mini_batch_size": 100,
+
+    "train_ratio": 0.6,
+    "test_ratio": 0.2,
+    "validation_ratio": 0.2,
+
+    "epochs_num": 200,
+
+    "round_bound": 0.001,
+
+    "metrics_names": ["precision", "recal", "accuracy", "f-measure"],
+
+    "logs_folder": "./logs",
+    "models_folder": "./models",
+
+    "note_length_theshold": 0.1
+}

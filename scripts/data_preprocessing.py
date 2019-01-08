@@ -1,125 +1,94 @@
-import random
+import sys
 import os
 
 import torch
 import numpy as np
-from tqdm import tqdm
+import tqdm
 
-from src.config import config
-from src.logger import get_logger
-from src.cqt import cqt
+from src import config, get_logger, cqt, labels
 
-logger = get_logger()
+logger = get_logger(file_silent=True)
 
-logger.info("Collecting list of files in the dataset")
+workers_num = int(sys.argv[1])
+current_worker_num = int(sys.argv[2])
 
-mus_filenames = []
-trills_filenames = []
-scales_filenames = []
-single_filenames = []
-chords_filenames = []
+folders = sorted(os.listdir(config["path_to_MAPS"]))
+folders = filter(lambda item: os.path.isdir(
+    os.path.join(config["path_to_MAPS"], item)), folders)
+folders = list(folders)[current_worker_num::workers_num]
 
-overall_files = 0
-
-storages = [
-    mus_filenames,
-    trills_filenames,
-    scales_filenames,
-    single_filenames,
-    chords_filenames
-]
-
-needles = [
-    ["MUS"],
-    ["TR"],
-    ["CH"],
-    ["ST", "LG", "RE", "NO"],
-    ["RAND", "UCHO"]
-]
-
-folders = [
-    "MUS",
-    "TRILLS",
-    "SCALES",
-    "SINGLE",
-    "CHORDS"
-]
-
-for dirpath, _, filenames in tqdm(os.walk(config["path_to_MAPS"])):
-    filenames = filter(lambda x: x.endswith(".wav"), filenames)
-    filenames = map(lambda x: x[:-4], filenames)
-
-    filenames = list(filenames)
-    overall_files += len(filenames)
-
-    for find_items, storage in zip(needles, storages):
-        for find_item in find_items:
-            storage.extend(
-                map(
-                    lambda x: os.path.join(dirpath, x),
-                    filter(
-                        lambda x: x.find("_" + find_item) != -1,
-                        filenames
-                    )
-                )
-            )
-
-logger.info("Done!")
-logger.info("Overall files: %s" % (overall_files, ))
-for folder, storage in zip(folders, storages):
-    logger.info("%s files: %s" % (folder, len(storage)))
-
-logger.info("Creating folders")
 for folder in folders:
-    os.makedirs(os.path.join(config["path_to_processed_MAPS"], folder), exist_ok=True)
-logger.info("Done!")
+    logger.info("Folder %s" % (folder, ))
 
-logger.info("Shuffling")
-r = random.Random(47)
-for storage in storages:
-    r.shuffle(storage)
-logger.info("Done!")
+    os.mkdir(os.path.join(config["path_to_processed_MAPS"], folder))
 
-logger.info("Performing cqt")
+    logger.info("Searching files")
+    allFiles = []
 
-for folder, filenames in zip(folders, storages):
-    logger.info(folder)
+    for dirpath, _, filenames in os.walk(os.path.join(config["path_to_MAPS"], folder)):
+        filenames = filter(
+            lambda filename: filename.endswith(".wav"), filenames)
+        filenames = map(lambda filename: filename[:-4], filenames)
+        filenames = map(lambda filename: os.path.join(
+            dirpath, filename), filenames)
 
-    X = np.array([])
-    y = np.array([])
+        allFiles.extend(filenames)
 
-    cnt = 0
+    logger.info("Performing cqt")
 
-    for filename in tqdm(filenames):
-        tx, ty = cqt(filename + ".wav", filename + ".txt")
+    X, y = None, None
 
-        X = np.vstack([X, tx]) if len(X) > 0 else tx
-        y = np.vstack([y, ty]) if len(y) > 0 else ty
+    for filename in tqdm.tqdm(allFiles):
+        tmp_X = cqt(filename + ".wav")
+        tmp_y = labels(filename + ".txt", tmp_X)
 
-        while(X.shape[0] >= config["frames_in_file"]):
-            X_tensor = torch.from_numpy(X[:config["frames_in_file"]])
-            y_tensor = torch.from_numpy(y[:config["frames_in_file"]])
+        if(X is None):
+            X = tmp_X
+            y = tmp_y
+        else:
+            X = np.vstack((X, tmp_X))
+            y = np.vstack((y, tmp_y))
 
-            torch.save(
-                X_tensor,
-                os.path.join(
-                    config["path_to_processed_MAPS"],
-                    folder,
-                    ("X%s.tensor" % (cnt, ))
-                )
-            )
-            torch.save(
-                y_tensor,
-                os.path.join(
-                    config["path_to_processed_MAPS"],
-                    folder,
-                    ("y%s.tensor" % (cnt, ))
-                )
-            )
+    mask = (y.sum(axis=1) > 0)
 
-            cnt += 1
+    notMask = np.logical_not(mask)
+    silenceSamplesNum = max(int(X.shape[0] * 0.005), notMask.sum())
 
-            X = X[config["frames_in_file"]:]
-            y = y[config["frames_in_file"]:]
+    X = np.vstack((X[mask], X[notMask][:silenceSamplesNum]))
+    y = np.vstack((y[mask], y[notMask][:silenceSamplesNum]))
 
-logger.info("Done")
+    p = np.random.permutation(X.shape[0])
+    X = X[p]
+    y = y[p]
+
+    all_Size = X.shape[0]
+
+    train_Size = int(all_Size * config["train_ratio"])
+    test_Size = int(all_Size * config["test_ratio"])
+    validation_Size = int(all_Size * config["validation_ratio"])
+
+    XTrain = torch.from_numpy(X[:train_Size])
+    yTrain = torch.from_numpy(y[:train_Size])
+
+    XTest = torch.from_numpy(X[train_Size:train_Size + test_Size])
+    yTest = torch.from_numpy(y[train_Size:train_Size + test_Size])
+
+    XValidation = torch.from_numpy(X[-validation_Size:])
+    yValidation = torch.from_numpy(y[-validation_Size:])
+
+    logger.info("Saving")
+
+    torch.save(XTrain, os.path.join(
+        config["path_to_processed_MAPS"], folder, "XTrain.tensor"))
+    torch.save(yTrain, os.path.join(
+        config["path_to_processed_MAPS"], folder, "yTrain.tensor"))
+
+    torch.save(XTest, os.path.join(
+        config["path_to_processed_MAPS"], folder, "XTest.tensor"))
+    torch.save(yTest, os.path.join(
+        config["path_to_processed_MAPS"], folder, "yTest.tensor"))
+
+    torch.save(XValidation, os.path.join(
+        config["path_to_processed_MAPS"], folder, "XValidation.tensor"))
+    torch.save(yValidation, os.path.join(
+        config["path_to_processed_MAPS"], folder, "yValidation.tensor"))

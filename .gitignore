@@ -6,3 +6,4 @@ logs/
 models/
 data_exploration/data/
 __pycache__/
+runs/

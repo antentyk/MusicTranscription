@@ -3,7 +3,8 @@ import os
 import sys
 import datetime
 
-from src.config.config import config
+from src import config
+
 
 def get_logger(console_silent=False, file_silent=False):
     """
@@ -16,7 +17,7 @@ def get_logger(console_silent=False, file_silent=False):
         - function name
         - logging level
         - logging message
-    
+
     It will also create .log file in associated folder
     (you should specify it in config)
 
@@ -29,7 +30,8 @@ def get_logger(console_silent=False, file_silent=False):
     """
     logger = logging.getLogger("application")
 
-    formatter = logging.Formatter("%(asctime)s — %(module)s — %(funcName)s — %(levelname)s — %(message)s")
+    formatter = logging.Formatter(
+        "%(asctime)s — %(module)s — %(funcName)s — %(levelname)s — %(message)s")
 
     if(not console_silent):
         console_handler = logging.StreamHandler(sys.stdout)
@@ -37,11 +39,10 @@ def get_logger(console_silent=False, file_silent=False):
         logger.addHandler(console_handler)
 
     if(not file_silent):
-        filename = "%s/%s_%s.log" % (
-            config["logs_folder"],
+        filename = os.path.join(config["logs_folder"], "%s_%s.log" % (
             str(datetime.datetime.now()),
             os.path.basename(sys.argv[0])
-        )
+        ))
         file_handler = logging.FileHandler(filename)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)

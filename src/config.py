@@ -13,8 +13,8 @@ def __get_config():
         dict: configuration dictionary
     """
 
-    config_filenames = filter(lambda x: x.endswith("_config.json"), os.listdir("./config"))
-    config_filenames = map(lambda x: "./config/" + x, config_filenames)
+    config_filenames = filter(lambda filename: filename.endswith(".json"), os.listdir("./config"))
+    config_filenames = map(lambda filename: os.path.join("./config", filename), config_filenames)
 
     configuration = {}
 

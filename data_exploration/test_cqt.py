@@ -1,35 +1,23 @@
-from src.cqt import cqt
-from src.config import config
-import librosa.display
-import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 
-from matplotlib import pyplot as plt
+from src import cqt, labels
 
-wav_file = "./data_exploration/data/" + "bach_wtc1_C_dur.wav"
-txt_file = "./data_exploration/data/" + "bach_wtc1_C_dur.txt"
+spectrogram = cqt("./data_exploration/data/MAPS_MUS-bach_846_AkPnBcht.wav")
+ground_truth = labels(
+    "./data_exploration/data/MAPS_MUS-bach_846_AkPnBcht.txt", spectrogram)
 
-prediction, labels = cqt(wav_file, txt_file)
+spectrogram = spectrogram[:1000]
+ground_truth = ground_truth[:1000]
 
-prediction = prediction.detach().numpy()
-labels = labels.detach().numpy()
+fig = plt.figure(1)
 
-print("Prediction for hop_length: %s = %s" % (config["hop_length"], prediction.shape))
+cmap = LinearSegmentedColormap.from_list('mapName', ['#2c3e50', '#ff5252'])
 
-hop_length = config["hop_length"]
+plt.subplot(211)
+plt.pcolormesh(spectrogram.T, cmap=cmap)
 
-for start in [0, 1000, 2000, 3000, 4000, 5000]:
-    X = prediction[start:start + 1000]
-    y = labels[start:start + 1000]
+plt.subplot(212)
+plt.pcolormesh(ground_truth.T, cmap=cmap)
 
-    fig = plt.figure(1)
-
-    plt.subplot(211)
-    plt.pcolormesh(X.T)
-
-    plt.subplot(212)
-    plt.pcolormesh(y.T)
-
-    # plt.savefig('cqt%s_%s.png' % (hop_length, start))
-
-    plt.show()
-
+plt.savefig("./img/test.png")

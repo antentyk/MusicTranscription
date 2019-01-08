@@ -1,13 +1,12 @@
 import torch
-
 import pandas as pd
 
-from src.config.config import config
+from src import config
 
 
 def __to_time(frame_number):
     samples = float(frame_number * config["hop_length"])
-    samples /= 44100
+    samples /= config["sr"]
     return samples
 
 
@@ -25,10 +24,17 @@ def prediction_to_time_series(prediction):
             if(prediction[note_number][i] == 0):
                 if(start == -1):
                     continue
-                onsets.append(__to_time(start))
-                offsets.append(__to_time(i + 1))
-                pitches.append(note_number + config["lowest_note_midi_pitch"])
+                onsetTime = __to_time(start)
+                offsetTime = __to_time(i + 1)
+
                 start = -1
+
+                if(offsetTime - onsetTime < config["note_length_theshold"]):
+                    continue
+
+                onsets.append(onsetTime)
+                offsets.append(offsetTime)
+                pitches.append(note_number + config["lowest_note_midi_pitch"])
             else:
                 if(start == -1):
                     start = i

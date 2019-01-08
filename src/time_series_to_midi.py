@@ -2,6 +2,7 @@ import os
 
 import midiutil
 
+
 def time_series_to_midi(time_series, output_filepath):
     """
     Generates midi file from time series representation of the song

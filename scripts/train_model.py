@@ -1,122 +1,116 @@
 import os
 
-from tqdm import tqdm
+import numpy as np
+
+import tqdm
 
 import torch
-from torch.utils.data import DataLoader
 from torch.optim import Adam
+from torch.utils.data import DataLoader
 from torch.nn.modules.loss import MSELoss
-
-from src.config import config
-from src.dataset import Dataset
-from src.model.Dnn import Dnn3Layers
-from src.logger import get_logger
 
 from tensorboardX import SummaryWriter
 
-folders = ["MUS"]
+from src import config, get_logger, Dataset, get_metrics, round_probabilities
+from src.model import Dnn3Layers
 
 
-def get_mean():
-    global folders
-
-    summ = torch.zeros(config["n_bins"])
-    n = 0
-
-    for folder in folders:
-        summ += torch.load(os.path.join(
-            config["path_to_processed_MAPS"], folder + "_sum.tensor"))
-        n += torch.load(os.path.join(
-            config["path_to_processed_MAPS"], folder + "_cnt.tensor")).item()
-
-    summ /= n
-
-    return summ
-
-
-mean = get_mean()
+logger = get_logger()
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-logger = get_logger(file_silent=True)
-
-model = Dnn3Layers("Kokoko")
-
-# model = Dnn3Layers("Dnn 3 layers")
+model = Dnn3Layers()
 model = model.to(device)
+model = model.train()
 
 optimizer = Adam(model.parameters(), lr=1e-3)
-criterion = MSELoss()
 
-logger.info("Start training")
+criterion = MSELoss(reduction="sum")
 
-writer = SummaryWriter()
+writer = SummaryWriter("./runs/Dnn3Layers")
 
-epochCounter = 0
-counter = 0
+logger.info("Loading train dataset")
+trainDataset = Dataset(config["path_to_processed_MAPS"], "train")
+logger.info("Done")
 
-for epoch in range(model.epochs_survived + 1, config["epochs_num"] + 1):
+logger.info("Loading validation dataset")
+validationDataset = Dataset(config["path_to_processed_MAPS"], "validation")
+logger.info("Done")
+
+trainDatasetMean = trainDataset.mean()
+
+batchCounter = 0
+
+for epoch in range(config["epochs_num"]):
     logger.info("Epoch %s" % (epoch, ))
 
-    dataloaders = [DataLoader(Dataset(
-        folder, "train"), batch_size=config["mini_batch_size"]).__iter__() for folder in folders]
-    maxDataloaderLength = max([len(dataloader) for dataloader in dataloaders])
+    model = model.train()
 
-    tqdmIter = tqdm(range(maxDataloaderLength))
+    dataloader = DataLoader(
+        trainDataset, batch_size=config["mini_batch_size"], shuffle=True)
 
-    losses = []
+    epochLossValue = 0
 
-    for i in tqdmIter:
-        newDataloaders = []
-        for dataloader in dataloaders:
-            batch_X, batch_y = None, None
+    logger.info("Start training")
 
-            try:
-                batch_X, batch_y = dataloader.next()
-                newDataloaders.append(dataloader)
-            except StopIteration:
-                continue
+    for batchX, batchy in tqdm.tqdm(dataloader):
+        batchX -= trainDatasetMean
 
-            batch_X -= mean
-            batch_X, batch_y = batch_X.to(device), batch_y.to(device)
+        batchX, batchy = batchX.to(device), batchy.to(device)
 
-            optimizer.zero_grad()
-            output = model(batch_X)
-            loss = criterion(output, batch_y.float())
-            tqdmIter.set_description(str(loss.item()))
-            writer.add_scalar("loss", loss.item(), counter)
-            losses.append(loss.item())
-            counter += 1
-            loss.backward()
-            optimizer.step()
-        dataloaders = newDataloaders
+        optimizer.zero_grad()
+        output = model(batchX)
 
-    writer.add_scalar("lossPerEpoch", sum(losses) / len(losses), epochCounter)
-    epochCounter += 1
+        loss = criterion(output, batchy.float())
 
-    model.epochs_survived += 1
+        epochLossValue += loss.item()
 
-    logger.info("Saving inbetween model...")
-    model.save_checkpoint()
-    logger.info("Done")
+        writer.add_scalar("batchLoss", loss.item(), batchCounter)
+        batchCounter += 1
 
-    continue
+        loss.backward()
+        optimizer.step()
 
-    logger.info("Estimating loss...")
-    loss_value = 0.0
-    for folder in folders:
-        dataloader = DataLoader(Dataset(folder, "train"), batch_size=config["mini_batch_size"])
-        logger.info(folder)
-        with torch.no_grad():
-            for batch_X, batch_y in tqdm(dataloader):
-                batch_X -= mean
-                batch_X[batch_X < 0] = 0
+    epochLossMean = epochLossValue / len(dataloader)
+    writer.add_scalar("epochLossMean", epochLossMean, epoch)
+    logger.info("EpochLossMean %s" % (epochLossMean))
 
-                batch_X, batch_y = batch_X.to(device), batch_y.to(device)
+    logger.info("Evaluating")
 
-                output = model(batch_X)
-                loss = criterion(output, batch_y.float())
-                loss_value += loss.item()
-    logger.info("Loss value per dataset: %s" % (loss_value, ))
+    with torch.no_grad():
+        model = model.eval()
 
-logger.info("Finished training")
+        trainMetrics = {}
+        validationMetrics = {}
 
+        for dataset, storage in zip(
+            [trainDataset, validationDataset],
+            [trainMetrics, validationMetrics]
+        ):
+            for batchX, batchy in tqdm.tqdm(DataLoader(dataset, batch_size=config["mini_batch_size"], shuffle=True)):
+                batchX -= trainDatasetMean
+                batchX, batchy = batchX.to(device), batchy.to(device)
+
+                prediction = round_probabilities(model(batchX))
+
+                metrics = get_metrics(prediction, batchy)
+
+                for metric in config["metrics_names"]:
+                    storage[metric] = storage.get(metric, 0) + metrics[metric]
+
+        for metric in config["metrics_names"]:
+            trainMetrics[metric] /= len(trainDataset)
+            validationMetrics[metric] /= len(validationDataset)
+
+            logger.info("Train %s: %s" % (metric, trainMetrics[metric]))
+            logger.info("Validation %s: %s" %
+                        (metric, validationMetrics[metric]))
+
+            writer.add_scalars(metric,
+                               {
+                                   "train": trainMetrics[metric],
+                                   "validation": validationMetrics[metric]
+                               },
+                               epoch)
+
+    torch.save(model, os.path.join(
+        config["models_folder"], (str(epoch + 1).rjust(3, "0") + ".pth")))
