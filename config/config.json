@@ -22,6 +22,7 @@
 
     "logs_folder": "./logs",
     "models_folder": "./models",
+    "public_models_folder": "./public_models",
 
     "note_length_theshold": 0.1
 }
