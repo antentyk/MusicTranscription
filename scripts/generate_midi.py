@@ -10,12 +10,12 @@ from src import get_logger, Dataset, config, cqt, round_probabilities, predictio
 logger = get_logger(file_silent=False)
 
 logger.info("Performing cqt")
-X = cqt("./data_exploration/data/MAPS_MUS-chpn-p4_AkPnBcht.wav")
+X = cqt("./data_exploration/data/MAPS_MUS-bach_846_AkPnBcht.wav")
 logger.info("Done")
 
 logger.info("Loading model")
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model = torch.load("./models/095.pth")
+model = torch.load("./models/Dnn10Layers/044.pth")
 model = model.to(device)
 model = model.eval()
 

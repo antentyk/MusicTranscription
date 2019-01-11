@@ -12,13 +12,13 @@ from torch.nn.modules.loss import MSELoss
 from tensorboardX import SummaryWriter
 
 from src import config, get_logger, Dataset, get_metrics, round_probabilities
-from src.model import Dnn3Layers
+from src.model import Dnn10Layers
 
 
 logger = get_logger()
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model = Dnn3Layers()
+model = Dnn10Layers()
 model = model.to(device)
 model = model.train()
 
@@ -26,7 +26,7 @@ optimizer = Adam(model.parameters(), lr=1e-3)
 
 criterion = MSELoss(reduction="sum")
 
-writer = SummaryWriter("./runs/Dnn3Layers")
+writer = SummaryWriter("./runs/Dnn10LayersLong")
 
 logger.info("Loading train dataset")
 trainDataset = Dataset(config["path_to_processed_MAPS"], "train")
@@ -71,7 +71,7 @@ for epoch in range(config["epochs_num"]):
         optimizer.step()
 
     epochLossMean = epochLossValue / len(dataloader)
-    writer.add_scalar("epochLossMean", epochLossMean, epoch)
+    writer.add_scalar("epochLossMean", epochLossMean, epoch + 1)
     logger.info("EpochLossMean %s" % (epochLossMean))
 
     logger.info("Evaluating")
@@ -113,4 +113,4 @@ for epoch in range(config["epochs_num"]):
                                epoch)
 
     torch.save(model, os.path.join(
-        config["models_folder"], (str(epoch + 1).rjust(3, "0") + ".pth")))
+        config["models_folder"], "Dnn10LayersLong", (str(epoch + 1).rjust(3, "0") + ".pth")))
