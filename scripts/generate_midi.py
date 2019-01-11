@@ -5,6 +5,8 @@ import numpy as np
 
 import tqdm
 
+import os
+
 from src import get_logger, Dataset, config, cqt, round_probabilities, prediction_to_time_series, time_series_to_midi
 
 logger = get_logger(file_silent=False)
@@ -23,11 +25,18 @@ p = np.random.permutation(X.shape[0])
 invp = np.argsort(p)
 
 X = X[p]
-
-trainDataset = Dataset(config["path_to_processed_MAPS"], "train")
-
 X = torch.from_numpy(X).float()
-X -= trainDataset.mean()
+
+try:
+    logger.info("Trying to load means from file")
+    trainDatasetMeans = torch.load(os.path.join(config["public_models_folder"], "train_means.pth"))
+    
+    X -= trainDatasetMeans
+except FileNotFoundError: # if no such file, then load all dataset and find mean
+    logger.info("Could not find file with means, so computing means over all dataset")
+    trainDataset = Dataset(config["path_to_processed_MAPS"], "train")
+
+    X -= trainDataset.mean()
 
 logger.info("Splitting into batches")
 
