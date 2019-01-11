@@ -1,5 +1,6 @@
 import torch
 import pandas as pd
+import tqdm
 
 from src import config
 
@@ -17,7 +18,7 @@ def prediction_to_time_series(prediction):
     offsets = []
     pitches = []
 
-    for note_number in range(config["notes_number"]):
+    for note_number in tqdm.tqdm(range(config["notes_number"])):
         start = -1
 
         for i in range(prediction.shape[1]):

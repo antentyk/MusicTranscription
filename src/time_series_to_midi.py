@@ -1,5 +1,6 @@
 import os
 
+import tqdm
 import midiutil
 
 
@@ -19,7 +20,7 @@ def time_series_to_midi(time_series, output_filepath):
     output_midi.addTrackName(0, 0, "Test track")
     output_midi.addTempo(0, 0, 120)
 
-    for index, row in time_series.iterrows():
+    for index, row in tqdm.tqdm(time_series.iterrows()):
         output_midi.addNote(
             0,
             0,

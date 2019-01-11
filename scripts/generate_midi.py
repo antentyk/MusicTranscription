@@ -22,7 +22,7 @@ class SongDataset(torch.utils.data.Dataset):
 logger = get_logger(file_silent=True)
 
 logger.info("Performing cqt")
-X = cqt("./data_exploration/data/MAPS_MUS-bach_846_AkPnBcht.wav")
+X = cqt("./demo/clair_de_lune/clair_de_lune.wav")
 logger.info("Done")
 
 logger.info("Loading model")
@@ -58,4 +58,4 @@ logger.info("Generating time series")
 
 ts = prediction_to_time_series(prediction)
 logger.info("Generating midi")
-time_series_to_midi(ts, "./test.midi")
+time_series_to_midi(ts, "./demo/clair_de_lune/clair_de_lune_prediction.mid")
