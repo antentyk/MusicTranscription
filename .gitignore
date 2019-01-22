@@ -8,3 +8,4 @@ data_exploration/data/
 __pycache__/
 runs/
 *.wav
+.ipynb_checkpoints/
